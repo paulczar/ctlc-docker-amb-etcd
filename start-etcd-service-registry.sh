@@ -2,11 +2,13 @@ env | grep _TCP= | sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/export LO
 
 echo "export LOCAL_HOST=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`" >> /tmp/env
 
+echo "export HOST_IP=`netstat -r -n | grep -e '^0.0.0.0' | awk '{print $2}'`" >> /tmp/env
+
 source /tmp/env
 
 while true
 do
-	etcdctl -C "http://172.17.42.1:4001/" set \
+	etcdctl -C "http://$HOST_IP:4001/" set \
 		/services/${NAME:-$LOCAL_PORT} \
 		"{ \"container_id\": \"$HOSTNAME\", \"local_ip\": \"$LOCAL_HOST\", \"port\": $LOCAL_PORT, \"version\": \"${VERSION:-1}\" }" --ttl 60
 	sleep 45
